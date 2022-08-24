@@ -1,0 +1,48 @@
+databaseChangeLog:
+  - changeSet:
+      id: 202208241505
+      author: LiptSoft
+      changes:
+        - createTable:
+            tableName: deposits
+            columns:
+              - column:
+                  name: id
+                  type: number(20)
+                  constraints:
+                    primaryKey: true
+                    autoIncrement: false
+              - column:
+                  name: dboid
+                  type: number(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: account
+                  type: varchar2(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: active
+                  type: varchar2(32)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: dep_dt
+                  type: varchar2(32)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: dep_yes_add
+                  type: varchar2(32)
+                  constraints:
+                    nullable: true
+        - createSequence:
+            sequenceName: seq_deposits
+            startValue: 1
+        - createIndex:
+            columns:
+              - column:
+                  name: dboid
+            indexName: idx_deposits_dboid
+            tableName: deposits

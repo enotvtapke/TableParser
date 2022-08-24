@@ -5,9 +5,7 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.JavaLocalDateColumnType
 import org.jetbrains.exposed.sql.javatime.JavaLocalDateTimeColumnType
 import org.jetbrains.exposed.sql.javatime.JavaLocalTimeColumnType
-import java.io.File
 import java.nio.file.Path
-import kotlin.io.path.createDirectories
 
 class EntityBuilder : Builder("\t") {
     private enum class Import(val type: String) {
@@ -18,14 +16,16 @@ class EntityBuilder : Builder("\t") {
     }
 
     private val entitiesBasePackage = "domain.entities."
-    private val entitiesBaseFolder = Path.of("/home/lipt/IdeaProjects/TableParser/src/main/kotlin/domain/entities")
+    override val buildedFilesBaseFolder: Path =
+        Path.of("/home/lipt/IdeaProjects/TableParser/src/main/kotlin/domain/entities")
+
     private val imports: MutableList<Import> = mutableListOf()
 
     fun build(table: Table, className: String) {
         val packageName = entitiesBasePackage +
                 getPackage(table.javaClass.canonicalName)
-                    .removePrefix(tablesPackagePrefix)
-                    .removeSuffix(tablesPackagePrefix.javaClass.name)
+                    .removePrefix(tablesBasePackage)
+                    .removeSuffix(tablesBasePackage.javaClass.name)
 
         val packageCode = "package $packageName\n"
 
@@ -46,12 +46,7 @@ class EntityBuilder : Builder("\t") {
 
         val code = packageCode + "\n" + (if (importsCode != "") importsCode + "\n" else "") + classCode
 
-        val pathToEntity = entitiesBaseFolder.resolve(entityPackageToPath(packageName))
-        pathToEntity.createDirectories()
-        File(pathToEntity.resolve("$className.kt").toAbsolutePath().toString()).printWriter().use {
-            it.print(code)
-        }
-        println(code)
+        createFile(table, "$className.kt", code)
     }
 
     private fun IColumnType.asKotlinType(): String {
@@ -80,7 +75,7 @@ class EntityBuilder : Builder("\t") {
                 "LocalTime"
             }
 
-            else -> throw EntityBuildException("Unknown column type ${this.javaClass}");
+            else -> throw EntityBuildException("Unknown column type ${this.javaClass}")
         }
 
         return type + if (this.nullable) "?" else ""
@@ -96,9 +91,6 @@ class EntityBuilder : Builder("\t") {
     ) {}
 
     private fun getPackage(canonicalName: String) = canonicalName.dropLastWhile { it != '.' }.dropLast(1)
-
-    private fun entityPackageToPath(entityPackage: String): Path =
-        Path.of(entityPackage.removePrefix(entitiesBasePackage).replace(".", File.separator))
 
     private fun String.toCamelCase() = buildString {
         var flag = false

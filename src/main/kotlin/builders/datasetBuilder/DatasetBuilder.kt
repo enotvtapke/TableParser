@@ -1,19 +1,19 @@
 package builders.datasetBuilder
 
 import builders.Builder
-import builders.entityBuilder.EntityBuildException
-import builders.entityBuilder.EntityBuilder
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.JavaLocalDateColumnType
 import org.jetbrains.exposed.sql.javatime.JavaLocalDateTimeColumnType
 import org.jetbrains.exposed.sql.javatime.JavaLocalTimeColumnType
-import org.jetbrains.exposed.sql.vendors.SQLiteDialect
-import org.jetbrains.exposed.sql.vendors.currentDialect
-import java.io.File
+import java.nio.file.Path
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 class DatasetBuilder : Builder("  ") {
+    override val buildedFilesBaseFolder: Path =
+        Path.of("/home/lipt/IdeaProjects/TableParser/resources/liquibase/")
+
     private fun StringBuilder.yamlElement(name: String, block: StringBuilder.() -> Unit) =
         element("$name:\n", block)
 
@@ -29,11 +29,38 @@ class DatasetBuilder : Builder("  ") {
         yamlElement(name) { content(content) }
 
     private fun isPrimaryKey(column: Column<*>): Boolean {
-        if (column.table.primaryKey?.columns?.size != null && column.table.primaryKey?.columns?.size!! > 1) {
+        if (column.table.primaryKey?.columns?.size == null) return false
+
+        if (column.table.primaryKey?.columns?.size!! > 1) {
             throw DatasetBuildException("Composite primary key columns are not supported.")
         }
-        return column.table.primaryKey?.columns?.contains(column) == true
+        return column.table.primaryKey?.columns?.size!! == 1 && column.table.primaryKey?.columns?.contains(column) == true
     }
+
+    private fun StringBuilder.table(table: Table) {
+        yamlArrayElement("createTable") {
+            yamlElement("tableName", table.tableName)
+            yamlElement("columns") {
+                table.columns.forEach {
+                    column(it)
+                }
+            }
+        }
+    }
+
+    private fun IColumnType.asLiquibaseType(): String =
+        when (val column = this) {
+            is LongColumnType, is EntityIDColumnType<*> -> "number(20)"
+            is DecimalColumnType -> "decimal(${column.precision}, ${column.scale})"
+            is VarCharColumnType -> "varchar2(${column.colLength})"
+            is TextColumnType -> "clob"
+            is IntegerColumnType -> "integer"
+            is BooleanColumnType -> "bool"
+            is JavaLocalDateTimeColumnType -> "timestamp"
+            is JavaLocalDateColumnType -> "date"
+            is JavaLocalTimeColumnType -> "time"
+            else -> throw DatasetBuildException("Unknown column type ${this.javaClass}")
+        }
 
     private fun StringBuilder.column(column: Column<*>) {
         yamlArrayElement("column") {
@@ -56,41 +83,55 @@ class DatasetBuilder : Builder("  ") {
         }
     }
 
-    private fun StringBuilder.table(table: Table) {
-        yamlArrayElement("createTable") {
-            yamlElement("tableName", table.tableName)
-            yamlElement("columns") {
-                table.columns.forEach {
-                    column(it)
-                }
-            }
-        }
-    }
-
     private fun StringBuilder.sequences(table: Table) {
         table.columns.forEach {
-            if (it.columnType is AutoIncColumnType) {
-                yamlElement("createSequence") {
-                    yamlElement("sequenceName", (it.columnType as AutoIncColumnType).autoincSeq ?: "")
+            var column = it
+            if (it.columnType is EntityIDColumnType<*>) {
+                column = (it.columnType as EntityIDColumnType<*>).idColumn
+            }
+            if (column.columnType is AutoIncColumnType) {
+                yamlArrayElement("createSequence") {
+                    yamlElement(
+                        "sequenceName",
+                        (column.columnType as AutoIncColumnType).autoincSeq
+                            ?: throw DatasetBuildException("No sequence name specified for autoInc column ${column.name}")
+                    )
                     yamlElement("startValue", "1")
                 }
             }
         }
     }
 
-    private fun IColumnType.asLiquibaseType(): String =
-        when (val column = this) {
-            is LongColumnType, is EntityIDColumnType<*> -> "number(20)"
-            is DecimalColumnType -> "decimal(${column.precision}, ${column.scale})"
-            is VarCharColumnType -> "varchar2(${column.colLength})"
-            is TextColumnType -> "clob"
-            is IntegerColumnType -> "integer"
-            is BooleanColumnType -> "bool"
-            is JavaLocalDateTimeColumnType -> "timestamp"
-            is JavaLocalDateColumnType -> "date"
-            is JavaLocalTimeColumnType -> "time"
-            else -> throw DatasetBuildException("Unknown column type ${this.javaClass}");
+    private fun StringBuilder.indices(table: Table) {
+        table.indices.forEach { index ->
+            yamlArrayElement("createIndex") {
+                yamlElement("columns") {
+                    index.columns.forEach { column ->
+                        yamlArrayElement("column") {
+                            yamlElement("name", column.name)
+                        }
+                    }
+                }
+                yamlElement("indexName", index.indexName)
+                yamlElement("tableName", table.tableName)
+                if (index.unique) {
+                    yamlElement("unique", "true")
+                }
+            }
         }
+    }
+
+    private fun StringBuilder.foreignKeys(table: Table) {
+        table.foreignKeys.forEach {
+            yamlArrayElement("addForeignKeyConstraint") {
+                yamlElement("baseColumnNames", it.from.joinToString(", ") { it.name })
+                yamlElement("baseTableName", it.fromTable.tableName)
+                yamlElement("constraintName", it.fkName)
+                yamlElement("referencedColumnNames", it.target.joinToString(", ") { it.name })
+                yamlElement("referencedTableName", it.targetTable.tableName)
+            }
+        }
+    }
 
     fun build(table: Table) {
         val code = buildString {
@@ -105,14 +146,16 @@ class DatasetBuilder : Builder("  ") {
                     yamlElement("changes") {
                         table(table)
                         sequences(table)
+                        indices(table)
+                        foreignKeys(table)
                     }
                 }
             }
         }
-        println(code)
-        File("/home/lipt/IdeaProjects/TableParser/src/main/kotlin/builders/datasetBuilder/test.yaml").printWriter()
-            .use {
-                it.print(code)
-            }
+
+        val fileName =
+            LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "-" + table.tableName.replace("_", "-")
+
+        createFile(table, "$fileName.yaml", code)
     }
 }

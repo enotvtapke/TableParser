@@ -1,0 +1,59 @@
+databaseChangeLog:
+  - changeSet:
+      id: 202208221068
+      author: LiptSoft
+      changes:
+        - createTable:
+            tableName: addresses
+            columns:
+              - column:
+                  name: id
+                  type: number(20)
+                  constraints:
+                    primaryKey: true
+                    autoIncrement: true
+              - column:
+                  name: address
+                  type: varchar2(256)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: city_name
+                  type: varchar2(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: place_type
+                  type: varchar2(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: region
+                  type: varchar2(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: post_code
+                  type: varchar2(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: private_customer
+                  type: number(20)
+                  constraints:
+                    nullable: false
+        - createSequence:
+            sequenceName: seq_addresses
+            startValue: 1
+        - createIndex:
+            columns:
+              - column:
+                  name: private_customer
+            indexName: idx_addresses_private_customers
+            tableName: addresses
+        - addForeignKeyConstraint:
+            baseColumnNames: private_customer
+            baseTableName: addresses
+            constraintName: fk_addresses_private_customer
+            referencedColumnNames: id
+            referencedTableName: private_customers
