@@ -1,7 +1,21 @@
-fun main(args: Array<String>) {
-    println("Hello World!")
+import builders.datasetBuilder.DatasetBuilder
+import builders.entityBuilder.EntityBuilder
+import domain.tables.BspbIncomeViews
+import domain.tables.accountService.Deposits
+import domain.tables.vwRptSpbGetClPrivs.VwRptSpbGetClPrivs
+import org.jetbrains.exposed.sql.transactions.transaction
 
-    // Try adding program arguments via Run/Debug configuration.
-    // Learn more about running applications: https://www.jetbrains.com/help/idea/running-applications.html.
-    println("Program arguments: ${args.joinToString()}")
+fun main() {
+    DbService.setupDb()
+//    val entityBuilder = EntityBuilder()
+//    transaction {
+//        entityBuilder.build(Deposits, "Deposit")
+//        entityBuilder.build(BspbIncomeViews, "BspbIncomeView")
+//        entityBuilder.build(VwRptSpbGetClPrivs, "VwRptSpbGetClPriv")
+//    }
+
+    val datasetBuilder = DatasetBuilder()
+    transaction {
+        datasetBuilder.build(Deposits)
+    }
 }
