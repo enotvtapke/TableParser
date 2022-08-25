@@ -1,6 +1,6 @@
 package builders.datasetBuilder
 
-import Config
+import builders.Config
 import builders.AbstractBuilder
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.JavaLocalDateColumnType

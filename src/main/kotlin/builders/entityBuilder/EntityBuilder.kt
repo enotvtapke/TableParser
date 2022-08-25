@@ -1,6 +1,6 @@
 package builders.entityBuilder
 
-import Config
+import builders.Config
 import builders.AbstractBuilder
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.JavaLocalDateColumnType
@@ -30,7 +30,9 @@ class EntityBuilder(private val config: Config) : AbstractBuilder("\t", config) 
         val classCode = buildString {
             dataClass(className) {
                 table.columns.forEach {
-                    column(it)
+                    if (!it.columnType.isAutoInc) {
+                        column(it)
+                    }
                 }
             }
         }
