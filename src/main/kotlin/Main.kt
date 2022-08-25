@@ -9,11 +9,17 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.nio.file.Path
 
 internal fun main() {
+//    val config = Config(
+//        tablesBasePackage = "domain.tables.",
+//        entityBasePackage = "domain.entities.",
+//        entityBaseFolder = Path.of("C:\\Users\\super\\work\\TableParser\\src\\main\\kotlin\\domain\\entities"),
+//        datasetBaseFolder = Path.of("C:\\Users\\super\\work\\TableParser\\resources\\liquibase")
+//    )
     val config = Config(
         tablesBasePackage = "domain.tables.",
         entityBasePackage = "domain.entities.",
-        entityBaseFolder = Path.of("C:\\Users\\super\\work\\TableParser\\src\\main\\kotlin\\domain\\entities"),
-        datasetBaseFolder = Path.of("C:\\Users\\super\\work\\TableParser\\resources\\liquibase")
+        entityBaseFolder = Path.of("/home/lipt/IdeaProjects/TableParser/src/main/kotlin/domain/entities"),
+        datasetBaseFolder = Path.of("/home/lipt/IdeaProjects/TableParser/resources/liquibase/accountService"),
     )
     val entityBuilder = EntityBuilder(config)
     val datasetBuilder = DatasetBuilder(config)
