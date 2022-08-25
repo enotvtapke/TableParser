@@ -1,4 +1,4 @@
-package domain.tables.accountService
+package domain.tables.accountService.privateAccounts
 
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IdTable
