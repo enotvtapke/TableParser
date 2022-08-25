@@ -1,6 +1,7 @@
 package builders.datasetBuilder
 
-import builders.Builder
+import Config
+import builders.AbstractBuilder
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.JavaLocalDateColumnType
 import org.jetbrains.exposed.sql.javatime.JavaLocalDateTimeColumnType
@@ -10,9 +11,8 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-class DatasetBuilder : Builder("  ") {
-    override val buildedFilesBaseFolder: Path =
-        Path.of("/home/lipt/IdeaProjects/TableParser/resources/liquibase/")
+class DatasetBuilder(config: Config) : AbstractBuilder("  ", config) {
+    override val builtFilesBaseFolder: Path = config.datasetBaseFolder
 
     private fun StringBuilder.yamlElement(name: String, block: StringBuilder.() -> Unit) =
         element("$name:\n", block)

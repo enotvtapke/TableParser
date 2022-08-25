@@ -1,15 +1,16 @@
 package builders
 
+import Config
 import org.jetbrains.exposed.sql.Table
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 
-abstract class Builder(private val indentSymbol: String) {
+abstract class AbstractBuilder(private val indentSymbol: String, config: Config) {
     private var indent: Int = 0
 
-    protected val tablesBasePackage = "domain.tables."
-    protected abstract val buildedFilesBaseFolder: Path
+    protected val tablesBasePackage = config.tablesBasePackage
+    protected abstract val builtFilesBaseFolder: Path
 
     private fun StringBuilder.add(content: String) {
         append(indentSymbol.repeat(indent) + content)
@@ -39,7 +40,7 @@ abstract class Builder(private val indentSymbol: String) {
     )
 
     fun createFile(table: Table, fileName: String, content: String) {
-        val pathToEntity = buildedFilesBaseFolder.resolve(getTableRelativePath(table))
+        val pathToEntity = builtFilesBaseFolder.resolve(getTableRelativePath(table))
         pathToEntity.createDirectories()
         File(pathToEntity.resolve(fileName).toAbsolutePath().toString()).printWriter().use {
             it.print(content)

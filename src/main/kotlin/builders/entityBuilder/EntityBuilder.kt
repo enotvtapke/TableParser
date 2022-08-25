@@ -1,13 +1,14 @@
 package builders.entityBuilder
 
-import builders.Builder
+import Config
+import builders.AbstractBuilder
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.JavaLocalDateColumnType
 import org.jetbrains.exposed.sql.javatime.JavaLocalDateTimeColumnType
 import org.jetbrains.exposed.sql.javatime.JavaLocalTimeColumnType
 import java.nio.file.Path
 
-class EntityBuilder : Builder("\t") {
+class EntityBuilder(config: Config) : AbstractBuilder("\t", config) {
     private enum class Import(val type: String) {
         BigDecimal("java.math.BigDecimal"),
         LocalTime("java.time.LocalDate"),
@@ -15,9 +16,8 @@ class EntityBuilder : Builder("\t") {
         LocalDateTime("java.time.LocalDateTime")
     }
 
-    private val entitiesBasePackage = "domain.entities."
-    override val buildedFilesBaseFolder: Path =
-        Path.of("/home/lipt/IdeaProjects/TableParser/src/main/kotlin/domain/entities")
+    private val entitiesBasePackage = config.entityBasePackage
+    override val builtFilesBaseFolder: Path = config.entityBaseFolder
 
     private val imports: MutableList<Import> = mutableListOf()
 

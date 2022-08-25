@@ -2,7 +2,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.jetbrains.exposed.sql.Database
 
-object DbService {
+internal object DbService {
   fun setupDb() {
     dataSource().also {
       Database.connect(it)

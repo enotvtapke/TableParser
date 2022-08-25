@@ -5,18 +5,24 @@ import domain.tables.accountService.Deposits
 import domain.tables.accountService.PrivateAccounts
 import domain.tables.customerService.privateCustomers.Addresses
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.nio.file.Path
 
-fun main() {
+internal fun main() {
+    val config = Config(
+        tablesBasePackage = "domain.tables.",
+        entityBasePackage = "domain.entities.",
+        entityBaseFolder = Path.of("C:\\Users\\super\\work\\TableParser\\src\\main\\kotlin\\domain\\entities"),
+        datasetBaseFolder = Path.of("C:\\Users\\super\\work\\TableParser\\resources\\liquibase")
+    )
+    val entityBuilder = EntityBuilder(config)
+    val datasetBuilder = DatasetBuilder(config)
     DbService.setupDb()
-    val entityBuilder = EntityBuilder()
     transaction {
         entityBuilder.build(Addresses, "Address")
         entityBuilder.build(CorporateAccounts, "CorporateAccount")
         entityBuilder.build(Deposits, "Deposit")
         entityBuilder.build(PrivateAccounts, "PrivateAccount")
     }
-
-    val datasetBuilder = DatasetBuilder()
     transaction {
         datasetBuilder.build(Addresses)
         datasetBuilder.build(CorporateAccounts)
