@@ -6,14 +6,11 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.JavaLocalDateColumnType
 import org.jetbrains.exposed.sql.javatime.JavaLocalDateTimeColumnType
 import org.jetbrains.exposed.sql.javatime.JavaLocalTimeColumnType
-import java.nio.file.Path
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-class DatasetBuilder(config: Config) : AbstractBuilder("  ", config) {
-    override val builtFilesBaseFolder: Path = config.datasetBaseFolder
-
+class DatasetBuilder(private val config: Config) : AbstractBuilder("  ", config) {
     private fun StringBuilder.yamlElement(name: String, block: StringBuilder.() -> Unit) =
         element("$name:\n", block)
 
@@ -156,6 +153,6 @@ class DatasetBuilder(config: Config) : AbstractBuilder("  ", config) {
         val fileName =
             LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "-" + table.tableName.replace("_", "-")
 
-        createFile(table, "$fileName.yaml", code)
+        createFile(table, config.datasetBaseFolder, "$fileName.yaml", code)
     }
 }

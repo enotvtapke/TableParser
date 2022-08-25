@@ -10,7 +10,6 @@ abstract class AbstractBuilder(private val indentSymbol: String, config: Config)
     private var indent: Int = 0
 
     protected val tablesBasePackage = config.tablesBasePackage
-    protected abstract val builtFilesBaseFolder: Path
 
     private fun StringBuilder.add(content: String) {
         append(indentSymbol.repeat(indent) + content)
@@ -39,8 +38,8 @@ abstract class AbstractBuilder(private val indentSymbol: String, config: Config)
             .replace(".", File.separator)
     )
 
-    fun createFile(table: Table, fileName: String, content: String) {
-        val pathToEntity = builtFilesBaseFolder.resolve(getTableRelativePath(table))
+    fun createFile(table: Table, baseFolder: Path, fileName: String, content: String) {
+        val pathToEntity = baseFolder.resolve(getTableRelativePath(table))
         pathToEntity.createDirectories()
         File(pathToEntity.resolve(fileName).toAbsolutePath().toString()).printWriter().use {
             it.print(content)
