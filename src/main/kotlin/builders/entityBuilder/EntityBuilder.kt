@@ -78,7 +78,7 @@ class EntityBuilder(private val config: Config) : AbstractBuilder("\t", config) 
             else -> throw EntityBuildException("Unknown column type ${this.javaClass}")
         }
 
-        return type + if (this.nullable) "?" else ""
+        return type + if (this.nullable) "? = null" else ""
     }
 
     private fun StringBuilder.dataClass(className: String, block: StringBuilder.() -> Unit) =
