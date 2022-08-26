@@ -2,8 +2,10 @@ package builders
 
 import org.jetbrains.exposed.sql.Table
 import java.io.File
+import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
+import kotlin.io.path.exists
 
 abstract class AbstractBuilder(private val indentSymbol: String, config: Config) {
     private var indent: Int = 0
@@ -40,8 +42,12 @@ abstract class AbstractBuilder(private val indentSymbol: String, config: Config)
     fun createFile(table: Table, baseFolder: Path, fileName: String, content: String) {
         val pathToEntity = baseFolder.resolve(getTableRelativePath(table))
         pathToEntity.createDirectories()
-        File(pathToEntity.resolve(fileName).toAbsolutePath().toString()).printWriter().use {
-            it.print(content)
+        if (!pathToEntity.resolve(fileName).exists()) {
+//            Files.createFile(pathToEntity.resolve(fileName))
+            Files.write(pathToEntity.resolve(fileName), content.toByteArray())
         }
+//        File(pathToEntity.resolve(fileName).toAbsolutePath().toString()).printWriter().use {
+//            it.print(content)
+//        }
     }
 }

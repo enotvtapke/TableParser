@@ -71,7 +71,7 @@ class DatasetBuilder(private val config: Config) : AbstractBuilder("  ", config)
                     yamlElement("autoIncrement", "true")
                 }
                 val isUnique =
-                    column.table.indices.map { it.columns.size == 1 && it.columns.first() == column }.any { it }
+                    column.table.indices.map { it.unique && it.columns.size == 1 && it.columns.first() == column }.any { it }
                 if (isUnique) {
                     yamlElement("unique", "true")
                 }
