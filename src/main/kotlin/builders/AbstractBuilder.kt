@@ -29,7 +29,6 @@ abstract class AbstractBuilder(private val indentSymbol: String, config: Config)
     fun StringBuilder.element(prefix: String, block: StringBuilder.() -> Unit) =
         element(prefix = prefix, suffix = "", block = block)
 
-
     private fun getPackage(canonicalName: String) = canonicalName.dropLastWhile { it != '.' }.dropLast(1)
 
     fun getTableRelativePath(table: Table): Path = Path.of(
@@ -39,7 +38,7 @@ abstract class AbstractBuilder(private val indentSymbol: String, config: Config)
             .replace(".", File.separator)
     )
 
-    fun createFile(table: Table, baseFolder: Path, fileName: String, content: String) {
+    fun createFileIfNotExists(table: Table, baseFolder: Path, fileName: String, content: String) {
         val pathToEntity = baseFolder.resolve(getTableRelativePath(table))
         pathToEntity.createDirectories()
         if (!pathToEntity.resolve(fileName).exists()) {
@@ -49,5 +48,17 @@ abstract class AbstractBuilder(private val indentSymbol: String, config: Config)
 //        File(pathToEntity.resolve(fileName).toAbsolutePath().toString()).printWriter().use {
 //            it.print(content)
 //        }
+    }
+
+    fun createOrRewriteFile(table: Table, baseFolder: Path, fileName: String, content: String) {
+        val pathToEntity = baseFolder.resolve(getTableRelativePath(table))
+        pathToEntity.createDirectories()
+        if (!pathToEntity.resolve(fileName).exists()) {
+//            Files.createFile(pathToEntity.resolve(fileName))
+            Files.write(pathToEntity.resolve(fileName), content.toByteArray())
+        }
+        File(pathToEntity.resolve(fileName).toAbsolutePath().toString()).printWriter().use {
+            it.print(content)
+        }
     }
 }

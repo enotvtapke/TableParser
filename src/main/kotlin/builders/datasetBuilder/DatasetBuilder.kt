@@ -153,6 +153,6 @@ class DatasetBuilder(private val config: Config) : AbstractBuilder("  ", config)
         val fileName =
             LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "-" + table.tableName.replace("_", "-")
 
-        createFile(table, config.datasetBaseFolder, "$fileName.yaml", code)
+        createOrRewriteFile(table, config.datasetBaseFolder, "$fileName.yaml", code)
     }
 }

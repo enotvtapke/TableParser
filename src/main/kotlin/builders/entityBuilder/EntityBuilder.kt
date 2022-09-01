@@ -46,7 +46,7 @@ class EntityBuilder(private val config: Config) : AbstractBuilder("\t", config) 
 
         val code = packageCode + "\n" + (if (importsCode != "") importsCode + "\n" else "") + classCode
 
-        createFile(table, config.entityBaseFolder,"$className.kt", code)
+        createFileIfNotExists(table, config.entityBaseFolder,"$className.kt", code)
     }
 
     private fun IColumnType.asKotlinType(): String {
